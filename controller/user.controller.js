@@ -15,7 +15,7 @@ class UserController {
       
       if (existingUser[1].email === undefined) {
         const result = await db.query(
-          `INSERT INTO user_request (firstName, lastName, studentPhone, parentPhone) VALUES('${firstName}', '${lastName}', '${studentPhone}', '${parentPhone}')`,
+          `INSERT INTO user_request (firstName, lastName, phone, parentsPhone) VALUES('${firstName}', '${lastName}', '${studentPhone}', '${parentPhone}')`,
         );
         // In order to get user in the terminal
         const user = await db.query(
