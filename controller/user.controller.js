@@ -8,24 +8,31 @@ function generateRandomToken(length = 32) {
 class UserController {
   async createUser(req, res) {
     const { firstName, lastName, studentPhone, parentPhone } = req.body;
+
     try {
-      const existingUser = await db.query(
-        `SELECT * FROM user_request WHERE firstName = '${firstName}' AND lastName = '${lastName}'`,
+      const [rows] = await db.query(
+        `SELECT * FROM user_request WHERE firstName = ? AND lastName = ?`,
+        [firstName, lastName],
       );
-      
-      if (existingUser[0] === undefined) {
-        const result = await db.query(
-          `INSERT INTO user_request (firstName, lastName, phone, parentsPhone) VALUES('${firstName}', '${lastName}', '${studentPhone}', '${parentPhone}');`,
+
+      if (rows.length === 0) {
+        const [result] = await db.query(
+          `INSERT INTO user_request (firstName, lastName, phone, parentsPhone) VALUES (?, ?, ?, ?)`,
+          [firstName, lastName, studentPhone, parentPhone],
         );
-        const users = result[0];
-        res.json(users[0]);
-        res.json({ message: "Ma'lumotlaringiz muvaffaqiyatli qo'shildi" });
+
+        return res.json({
+          message: "Ma'lumotlaringiz muvaffaqiyatli qo'shildi",
+          id: result.insertId,
+        });
       } else {
-        res.json({ message: "Sizning ma'lumotlaringiz allaqachon ro'yxatdan o'tgan" });
+        return res.json({
+          message: "Sizning ma'lumotlaringiz allaqachon ro'yxatdan o'tgan",
+        });
       }
     } catch (error) {
-      res.json({ message: "User already exists" });
       console.error(error);
+      return res.json({ message: "Error occurred" });
     }
   }
 
@@ -369,94 +376,99 @@ ORDER BY h.deadline ASC;
     res.json(result[0]);
   }
   async createProduct(req, res) {
-  try {
-    const { name, description, price_coins, stock } = req.body;
+    try {
+      const { name, description, price_coins, stock } = req.body;
 
-    if (!req.file) {
-      console.log("❌ No file uploaded");
-      return res.status(400).json({ message: "Image is required" });
-    }
+      if (!req.file) {
+        console.log("❌ No file uploaded");
+        return res.status(400).json({ message: "Image is required" });
+      }
 
-    // File is now saved in /uploads
-    const image_url = `/uploads/${req.file.filename}`;
+      // File is now saved in /uploads
+      const image_url = `/uploads/${req.file.filename}`;
 
-    console.log("Saving:", { name, description, price_coins, stock, image_url });
+      console.log("Saving:", {
+        name,
+        description,
+        price_coins,
+        stock,
+        image_url,
+      });
 
-    await db.query(
-      `INSERT INTO shop_products (name, description, price_coins, image_url, stock)
+      await db.query(
+        `INSERT INTO shop_products (name, description, price_coins, image_url, stock)
        VALUES (?, ?, ?, ?, ?)`,
-      [name, description, price_coins, image_url, stock]
-    );
+        [name, description, price_coins, image_url, stock],
+      );
 
-    res.status(201).json({ message: "Product created" });
-  } catch (err) {
-    console.error("🔥 SERVER ERROR:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+      res.status(201).json({ message: "Product created" });
+    } catch (err) {
+      console.error("🔥 SERVER ERROR:", err);
+      res.status(500).json({ message: "Server error", error: err.message });
+    }
   }
-}
   async createOrder(req, res) {
-  const { student_id, items } = req.body;
-  const connection = await db.getConnection();
+    const { student_id, items } = req.body;
+    const connection = await db.getConnection();
 
-  try {
-    await connection.beginTransaction();
+    try {
+      await connection.beginTransaction();
 
-    const [[user]] = await connection.query(
-      `SELECT * FROM student_coins WHERE student_id = ?`,
-      [student_id],
-    );
+      const [[user]] = await connection.query(
+        `SELECT * FROM student_coins WHERE student_id = ?`,
+        [student_id],
+      );
 
-    if (!user) throw new Error("User not found");
+      if (!user) throw new Error("User not found");
 
-    if (!items || items.length === 0) {
-      throw new Error("No items provided");
-    }
+      if (!items || items.length === 0) {
+        throw new Error("No items provided");
+      }
 
-    const total = items.reduce(
-      (acc, item) => acc + item.price_coins * item.quantity,
-      0
-    );
+      const total = items.reduce(
+        (acc, item) => acc + item.price_coins * item.quantity,
+        0,
+      );
 
-    if (user.coins < total) {
-      throw new Error("Insufficient funds");
-    }
+      if (user.coins < total) {
+        throw new Error("Insufficient funds");
+      }
 
-    const [orderResult] = await connection.query(
-      `INSERT INTO shop_orders (student_id, total_coins)
+      const [orderResult] = await connection.query(
+        `INSERT INTO shop_orders (student_id, total_coins)
        VALUES (?, ?)`,
-      [student_id, total],
-    );
+        [student_id, total],
+      );
 
-    const orderId = orderResult.insertId;
+      const orderId = orderResult.insertId;
 
-    for (const item of items) {
-      await connection.query(
-        `INSERT INTO shop_order_items 
+      for (const item of items) {
+        await connection.query(
+          `INSERT INTO shop_order_items 
          (order_id, product_id, quantity, price_at_time)
          VALUES (?, ?, ?, ?)`,
-        [orderId, item.id, item.quantity, item.price_coins],
-      );
-    }
+          [orderId, item.id, item.quantity, item.price_coins],
+        );
+      }
 
-    await connection.query(
-      `UPDATE student_coins 
+      await connection.query(
+        `UPDATE student_coins 
        SET coins = coins - ? 
        WHERE student_id = ?`,
-      [total, student_id]
-    );
+        [total, student_id],
+      );
 
-    await connection.commit();
+      await connection.commit();
 
-    res.json({ success: true, message: "Order created successfully" });
-
-  } catch (err) {
-    await connection.rollback();
-    console.error(err.message);
-    res.status(400).json({ message: err.message });
-  } finally {
-    connection.release();
+      res.json({ success: true, message: "Order created successfully" });
+    } catch (err) {
+      await connection.rollback();
+      console.error(err.message);
+      res.status(400).json({ message: err.message });
+    } finally {
+      connection.release();
+    }
   }
-}
   async addExercises(req, res) {
     const { id } = req.params; // homework_id
     const { exercises } = req.body;
