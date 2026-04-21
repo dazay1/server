@@ -7,27 +7,25 @@ function generateRandomToken(length = 32) {
 }
 class UserController {
   async createUser(req, res) {
-    const email = req.body.email;
-    const { name, surname, password } = req.body;
+    const { firstName, lastName, studentPhone, parentPhone } = req.body;
     try {
       const existingUser = await db.query(
-        `SELECT * FROM students WHERE email = '${email}'`,
+        `SELECT * FROM user_request WHERE firstName = '${firstName}' AND lastName = '${lastName}'`,
       );
-
+      
       if (existingUser[1].email === undefined) {
         const result = await db.query(
-          `INSERT INTO students (name, surname, email, password) VALUES('${name}', '${surname}', '${email}', '${password}')`,
+          `INSERT INTO user_request (firstName, lastName, studentPhone, parentPhone) VALUES('${firstName}', '${lastName}', '${studentPhone}', '${parentPhone}')`,
         );
-        // const users = result[0]
         // In order to get user in the terminal
         const user = await db.query(
-          `SELECT * FROM students WHERE email = '${email}'`,
+          `SELECT * FROM user_request WHERE firstName = '${firstName}' AND lastName = '${lastName}'`,
         );
         const users = user[0];
         res.json(users[0]);
-        res.json({ message: "User registered successfully" });
+        res.json({ message: "Ma'lumotlaringiz muvaffaqiyatli qo'shildi" });
       } else {
-        res.json({ message: "User already exists" });
+        res.json({ message: "Sizning ma'lumotlaringiz allaqachon ro'yxatdan o'tgan" });
       }
     } catch (error) {
       res.json({ message: "User already exists" });
