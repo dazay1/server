@@ -93,7 +93,7 @@ router.post("/homework/coins/earned", UserController.transferHomeworkCoins);
 router.post("/stars/mark-as-read", UserController.markCoinNotificationsAsRead);
 router.post("/user/:id", UserController.getUsersById);
 router.post("/star/post", UserController.createStar);
-router.post("/user", UserController.createUser);
+router.post("/user/register", UserController.createUser);
 router.post("/user/teacher/page", UserController.createTeacher);
 router.post("/user/student/page", UserController.createStudent);
 router.post("/user/group/page", UserController.createGroup);
