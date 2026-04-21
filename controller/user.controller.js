@@ -15,6 +15,7 @@ class UserController {
         [firstName, lastName],
       );
 
+      console.log(rows)
       if (rows.length === 0) {
         const [result] = await db.query(
           `INSERT INTO user_request (firstName, lastName, phone, parentsPhone) VALUES (?, ?, ?, ?)`,
