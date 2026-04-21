@@ -13,7 +13,7 @@ class UserController {
         `SELECT * FROM user_request WHERE firstName = '${firstName}' AND lastName = '${lastName}'`,
       );
       
-      if (existingUser[1].email === undefined) {
+      if (existingUser[0] === undefined) {
         const result = await db.query(
           `INSERT INTO user_request (firstName, lastName, phone, parentsPhone) VALUES('${firstName}', '${lastName}', '${studentPhone}', '${parentPhone}')`,
         );
