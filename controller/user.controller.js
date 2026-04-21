@@ -15,13 +15,9 @@ class UserController {
       
       if (existingUser[0] === undefined) {
         const result = await db.query(
-          `INSERT INTO user_request (firstName, lastName, phone, parentsPhone) VALUES('${firstName}', '${lastName}', '${studentPhone}', '${parentPhone}')`,
+          `INSERT INTO user_request (firstName, lastName, phone, parentsPhone) VALUES('${firstName}', '${lastName}', '${studentPhone}', '${parentPhone}');`,
         );
-        // In order to get user in the terminal
-        const user = await db.query(
-          `SELECT * FROM user_request WHERE firstName = '${firstName}' AND lastName = '${lastName}'`,
-        );
-        const users = user[0];
+        const users = result[0];
         res.json(users[0]);
         res.json({ message: "Ma'lumotlaringiz muvaffaqiyatli qo'shildi" });
       } else {
