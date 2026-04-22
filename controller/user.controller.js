@@ -1254,6 +1254,16 @@ ORDER BY h.deadline ASC;
       res.status(500).json({ message: "Error deleting product" });
     }
   }
+  async deleteUser(req, res) {
+    try {
+      const {id} = req.params;
+      await db.query(`DELETE FROM user_request WHERE id = ?`, [id]);
+      res.json({ message: "User deleted" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Error deleting user" });
+    }
+  }
 }
 
 module.exports = new UserController();
