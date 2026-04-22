@@ -1083,7 +1083,7 @@ ORDER BY h.deadline ASC;
     }
   }
 
-  updateDay(req, res) {
+  async updateDay(req, res) {
     try {
       const {
         student_id,
