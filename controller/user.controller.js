@@ -52,10 +52,14 @@ class UserController {
     return res.json(users);
   }
   async getPayment(req, res) {
-    const result = await db.query(`SELECT * FROM payments`);
-    const users = result[0];
-    res.json(users);
+  try {
+    const [rows] = await db.query("SELECT * FROM payments");
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
+}
   async getTeacher(req, res) {
     const result = await db.query(
       `SELECT * FROM students WHERE role = 'teacher'`,
