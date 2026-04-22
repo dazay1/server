@@ -126,6 +126,6 @@ router.delete("/user/student", UserController.deleteUser);
 router.delete("/user/studentGroup", UserController.deleteStudent);
 router.delete("/plan/instance/:id", UserController.deletePlanInstance);
 router.delete("/products/:id", UserController.deleteProducts);
-router.delete("/register/user/:id", UserController.deleteProducts);
+router.delete("/register/user/:id", UserController.deleteUser);
 
 module.exports = router;
