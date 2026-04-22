@@ -35,6 +35,7 @@ const upload = multer({
   fileFilter,
 });
 router.get("/user", UserController.getUsers);
+router.get("/registered/user", UserController.getRegisteredUsers);
 router.get("/user/teacher", UserController.getTeacher);
 router.get("/user/student", UserController.getStudent);
 router.get("/group", UserController.getGroups);

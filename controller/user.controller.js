@@ -14,8 +14,7 @@ class UserController {
         `SELECT * FROM user_request WHERE firstName = ? AND lastName = ?`,
         [firstName, lastName],
       );
-
-      console.log(rows)
+      
       if (rows.length === 0) {
         const [result] = await db.query(
           `INSERT INTO user_request (firstName, lastName, phone, parentsPhone) VALUES (?, ?, ?, ?)`,
@@ -40,6 +39,14 @@ class UserController {
   async getUsers(req, res) {
     const result = await db.query(
       `SELECT * FROM students WHERE role = 'student'`,
+    );
+    const users = result[0];
+    return res.json(users);
+  }
+
+  async getRegisteredUsers(req, res) {
+    const result = await db.query(
+      `SELECT * FROM user_request`,
     );
     const users = result[0];
     return res.json(users);
