@@ -52,7 +52,7 @@ class UserController {
     return res.json(users);
   }
   async getPayment(req, res) {
-    const result = await db.query(`SELECT * FROM payment`);
+    const result = await db.query(`SELECT * FROM payments`);
     const users = result[0];
     res.json(users);
   }
@@ -1080,11 +1080,47 @@ ORDER BY h.deadline ASC;
   }
 
   updateDay(req, res) {
-    const { id, amountPaid, wayPaid, way, columnName } = req.body;
-    const result = db.query(
-      `UPDATE payment SET ${columnName} = '${amountPaid}', ${way} = '${wayPaid}'  WHERE payment_id = ${id}`,
-    );
-    res.json(result);
+    try {
+      const {
+        student_id,
+        amount,
+        payment_method,
+      payment_date,
+      payment_for_month,
+      note
+    } = req.body;
+
+    // basic validation
+    if (!student_id || !amount || !payment_method || !payment_date) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const query = `
+      INSERT INTO payments 
+      (student_id, amount, payment_method, payment_date, payment_for_month, note)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+      student_id,
+      amount,
+      payment_method,
+      payment_date,
+      payment_for_month || null,
+      note || null
+    ];
+
+    const [result] = await db.execute(query, values);
+
+    res.status(201).json({
+      message: "Payment added successfully",
+      paymentId: result.insertId
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
   }
 
   async updateHomework(req, res) {
